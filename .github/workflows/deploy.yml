@@ -18,6 +18,7 @@ jobs:
       env:
         SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
         REMOTE_HOST: ${{ secrets.HOST_DNS }}
+        REMOTE_HOST: ${{ secrets.HOST_DNS2 }}
         REMOTE_USER: ${{ secrets.EC2_USER }}
         TARGET: ${{ secrets.TARGET_DIR }}
 
@@ -31,3 +32,4 @@ jobs:
           cd /var/www/html/ec2web2
           git pull origin master
           sudo mv * /var/www/html/
+
