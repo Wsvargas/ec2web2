@@ -1,4 +1,4 @@
-name: Deploy to EC2 (Multiple Instances)
+name: Deploy to EC2
 
 on:
   push:
@@ -10,23 +10,46 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Check out the code
-      uses: actions/checkout@v3
+      # Paso para verificar el código
+      - name: Check out the code
+        uses: actions/checkout@v3
 
-    # Deploy to first EC2 instance
-    - name: Deploy to EC2 Instance 1
-      uses: easingthemes/ssh-deploy@main
-      env:
-        SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
-        REMOTE_HOST: ${{ secrets.HOST_DNS }}
-        REMOTE_USER: ${{ secrets.EC2_USER }}
-        TARGET: ${{ secrets.TARGET_DIR }}
+      # Despliegue en la primera instancia
+      - name: Deploy to EC2 - Instance 1
+        uses: easingthemes/ssh-deploy@main
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
+          REMOTE_HOST: ${{ secrets.HOST_DNS }}
+          REMOTE_USER: ${{ secrets.EC2_USER }}
+          TARGET: ${{ secrets.TARGET_DIR }}
 
-    # Deploy to second EC2 instance
-    - name: Deploy to EC2 Instance 2
-      uses: easingthemes/ssh-deploy@main
-      env:
-        SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
-        REMOTE_HOST: ${{ secrets.HOST_DNS2 }}
-        REMOTE_USER: ${{ secrets.EC2_USER }}
-        TARGET: ${{ secrets.TARGET_DIR }}
+      - name: Executing remote ssh commands on Instance 1
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST_DNS }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /var/www/html/ec2web2
+            git pull origin master
+            sudo mv * /var/www/html/
+
+      # Despliegue en la segunda instancia
+      - name: Deploy to EC2 - Instance 2
+        uses: easingthemes/ssh-deploy@main
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
+          REMOTE_HOST: ${{ secrets.HOST_DNS2 }}  # Cambiar a HOST_DNS2
+          REMOTE_USER: ${{ secrets.EC2_USER }}
+          TARGET: ${{ secrets.TARGET_DIR }}
+
+      - name: Executing remote ssh commands on Instance 2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST_DNS2 }}  # Cambiar a HOST_DNS2
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /var/www/html/ec2web2
+            git pull origin master
+            sudo mv * /var/www/html/
